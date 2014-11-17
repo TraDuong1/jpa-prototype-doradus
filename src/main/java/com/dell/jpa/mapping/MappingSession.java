@@ -25,7 +25,7 @@ import com.dell.doradus.common.ObjectResult;
 import com.dell.jpa.entity.annotation.Application;
 
 /**
- * Object Mapper API to work with entities to be persisted in Doradus. 
+ * Object Mapper APIs to work with entities to be persisted in Doradus. 
  * This is lightweight wrapper for the Doradus Client. 
  */
 @Repository
@@ -79,7 +79,65 @@ public class MappingSession {
         return null;
          
     }
+    
+    /**
+     * Persist Entity
+     * @param entity
+     * @return persisted entity
+     */
+	public <E> E save(E entity) {
+		
+		//retrieve Application name from annotation
+		Application applicationAnnotation = (Application) entity.getClass().getAnnotation(Application.class);	
+		String application = applicationAnnotation.name();
+		Table tableAnnotation = (Table)entity.getClass().getAnnotation(Table.class);
+		String tableName = tableAnnotation.name();
+		
+    	Class<?> clazz = entity.getClass();
+        EntityTypeMetadata entityMetadata = EntityTypeParser.getEntityMetadata(clazz);
+        
+        List<EntityFieldMetaData> fields = entityMetadata.getFields();
+        String[] columns = new String[fields.size()];
+        Object[] values = new Object[fields.size()];
+        for (int i = 0; i < fields.size(); i++) {
+            EntityFieldMetaData f = fields.get(i);
+            columns[i] = f.getColumnName();
+            values[i] = f.getValue(entity);
+        }     
 
+
+        ApplicationSession session = (ApplicationSession)client.openApplication(application);
+	    DBObjectBatch objectBatch = new DBObjectBatch();
+	    
+	    DBObject dbObject = new DBObject();
+	    dbObject.setTableName(tableName);
+	    
+	    for (int i = 0; i < fields.size(); i++) {
+	    	if (columns[i] != null && values[i] != null) {
+	    		if (fields.get(i).getDataType().equals(DataType.Name.SET)) {
+	    			dbObject.addFieldValues(columns[i], (Set)values[i]);
+	    		}
+	    		else {
+	    			dbObject.addFieldValue(columns[i], values[i].toString());
+	    		}
+    		}
+    	}    
+	    objectBatch.addObject(dbObject);
+	        
+        String storageService = session.getAppDef().getStorageService();
+        if (storageService.startsWith("Spider")) {
+	        //persist
+        	ObjectResult result = ((SpiderSession)session).addObject(tableName, dbObject);
+	        if (result.isFailed()) {
+	        	throw new RuntimeException(result.getErrorMessage());
+	        }
+	        EntityFieldMetaData idField = entityMetadata.getFieldMetadata("id");
+	        idField.setValue(entity, result.getObjectID());	        
+        }  
+  
+        return entity;
+	}
+	
 	private Object getValueObjectFromDBObject(DBObject dbObject, EntityFieldMetaData field) {
 		Object value = null;
         DataType.Name dataType = field.getDataType();
@@ -139,57 +197,6 @@ public class MappingSession {
 	}	
     
 
-	public <E> E save(E entity) {
-		
-		//retrieve Application name from annotation
-		Application applicationAnnotation = (Application) entity.getClass().getAnnotation(Application.class);	
-		String application = applicationAnnotation.name();
-		Table tableAnnotation = (Table)entity.getClass().getAnnotation(Table.class);
-		String tableName = tableAnnotation.name();
-		
-    	Class<?> clazz = entity.getClass();
-        EntityTypeMetadata entityMetadata = EntityTypeParser.getEntityMetadata(clazz);
-        
-        List<EntityFieldMetaData> fields = entityMetadata.getFields();
-        String[] columns = new String[fields.size()];
-        Object[] values = new Object[fields.size()];
-        for (int i = 0; i < fields.size(); i++) {
-            EntityFieldMetaData f = fields.get(i);
-            columns[i] = f.getColumnName();
-            values[i] = f.getValue(entity);
-        }     
 
-
-        ApplicationSession session = (ApplicationSession)client.openApplication(application);
-	    DBObjectBatch objectBatch = new DBObjectBatch();
-	    
-	    DBObject dbObject = new DBObject();
-	    dbObject.setTableName(tableName);
-	    
-	    for (int i = 0; i < fields.size(); i++) {
-	    	if (columns[i] != null && values[i] != null) {
-	    		if (fields.get(i).getDataType().equals(DataType.Name.SET)) {
-	    			dbObject.addFieldValues(columns[i], (Set)values[i]);
-	    		}
-	    		else {
-	    			dbObject.addFieldValue(columns[i], values[i].toString());
-	    		}
-    		}
-    	}    
-	    objectBatch.addObject(dbObject);
-	        
-        String storageService = session.getAppDef().getStorageService();
-        if (storageService.startsWith("Spider")) {
-	        //persist
-        	ObjectResult result = ((SpiderSession)session).addObject(tableName, dbObject);
-	        if (result.isFailed()) {
-	        	throw new RuntimeException(result.getErrorMessage());
-	        }
-	        EntityFieldMetaData idField = entityMetadata.getFieldMetadata("id");
-	        idField.setValue(entity, result.getObjectID());	        
-        }  
-  
-        return entity;
-	}
   
 }
