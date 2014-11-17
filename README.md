@@ -1,8 +1,8 @@
 Sample JPA Light for Doradus Project
 ====================================
 
-The purpose of this project to demonstrate how to utilize JPA to some extent.  
-### You can take a look at the sample test:
+The purpose of this project to demonstrate how to utilize JPA for Doradus, to some extent.  
+### You can take a look at the sample test to see how to persist JPA entity into Doradus and retrieve it.
 
 - [MappingSessionTest](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/test/java/com/dell/jpa/mapping/MappingSessionTest.java)
 
