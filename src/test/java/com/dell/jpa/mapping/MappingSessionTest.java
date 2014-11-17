@@ -26,10 +26,10 @@ public class MappingSessionTest {
 	
 
 	@Test
-	public void testPersitEntityWithSchemaExisted() throws ParseException {	
+	public void testPersistAndRetrieveEntityWithSchemaExisted() throws ParseException {	
 		
 		Movies entity = new Movies();
-		entity.setName("My Totoro");
+		entity.setName("Spririted Away");
 		entity.setDirector("Hayao Miyazaki");
 		entity.setBudget(100);
 		entity.setCancelled(false);
