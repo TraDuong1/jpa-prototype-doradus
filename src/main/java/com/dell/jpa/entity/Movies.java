@@ -2,7 +2,6 @@ package com.dell.jpa.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -14,7 +13,7 @@ import com.dell.jpa.entity.annotation.Application;
 
 @Entity
 
-@Application(name="MyApplication")
+@Application(name="HelloSpider", key="Arachnid")
 @Table(name="Movies")
 public class Movies implements Serializable {
 

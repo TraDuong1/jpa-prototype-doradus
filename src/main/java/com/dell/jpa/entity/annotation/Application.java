@@ -15,4 +15,7 @@ public @interface Application {
      *
      */
     String name();
+    boolean ddlAutoCreate() default false;
+    String storageService() default "SpiderService";
+    String key();
 }

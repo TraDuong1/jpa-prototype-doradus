@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.dell.jpa.entity.Movies;
+import com.dell.jpa.entity.NewEntity;
 import com.dell.jpa.mapping.MappingSession;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,4 +53,26 @@ public class MappingSessionTest {
 		assertEquals(entity.isCancelled(), result.isCancelled());
 		assertEquals(entity.getLeads().size(), result.getLeads().size());		
 	}
+	
+	@Test
+	public void testPersistAndRetrieveEntityWithSchemaNotExisted() throws ParseException {	
+				
+		NewEntity entity = new NewEntity();
+		entity.setAge(10);
+		entity.setName("foo");
+	
+		//test persist
+		assertNull(entity.getId());		
+		NewEntity savedObject = mappingSession.save(entity);
+		
+		assertNotNull(entity.getId());		
+		assertNotNull(savedObject.getId());
+		
+		//test retrieval
+		NewEntity result = mappingSession.get(NewEntity.class, entity.getId());
+		assertNotNull(result.getId());		
+		assertEquals(entity.getName(), result.getName());
+		assertEquals(entity.getAge(), result.getAge());		
+	}	
+	
 }

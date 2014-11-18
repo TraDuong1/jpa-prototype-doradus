@@ -19,9 +19,12 @@ import com.datastax.driver.mapping.meta.EntityTypeMetadata;
 import com.dell.doradus.client.ApplicationSession;
 import com.dell.doradus.client.Client;
 import com.dell.doradus.client.SpiderSession;
+import com.dell.doradus.common.ApplicationDefinition;
+import com.dell.doradus.common.CommonDefs;
 import com.dell.doradus.common.DBObject;
 import com.dell.doradus.common.DBObjectBatch;
 import com.dell.doradus.common.ObjectResult;
+import com.dell.doradus.common.TableDefinition;
 import com.dell.jpa.entity.annotation.Application;
 
 /**
@@ -35,6 +38,83 @@ public class MappingSession {
 	Client client;
 	
 	
+
+    /**
+     * Persist Entity
+     * @param entity
+     * @return persisted entity
+     */
+	public <E> E save(E entity) {
+		
+		//retrieve Application name from annotation
+		Application applicationAnnotation = (Application) entity.getClass().getAnnotation(Application.class);	
+		String applicationName = applicationAnnotation.name();
+	
+		boolean ddlAutoCreate = applicationAnnotation.ddlAutoCreate();
+		String storageService = applicationAnnotation.storageService();
+		String key = applicationAnnotation.key();
+		
+		Table tableAnnotation = (Table)entity.getClass().getAnnotation(Table.class);
+		String tableName = tableAnnotation.name();
+		
+		if (client.getAppDef(applicationName) == null) {			
+			if (ddlAutoCreate) {
+				//create new application
+				ApplicationDefinition appDef = new ApplicationDefinition();
+				appDef.setAppName(applicationName);
+				appDef.setKey(key);
+				TableDefinition tableDef = new TableDefinition(appDef);
+				tableDef.setTableName(tableName);
+				tableDef.setApplication(appDef);
+				appDef.addTable(tableDef);
+				appDef.setOption(CommonDefs.OPT_STORAGE_SERVICE, storageService);
+				client.createApplication(appDef);
+			}
+		}		
+    	Class<?> clazz = entity.getClass();
+        EntityTypeMetadata entityMetadata = EntityTypeParser.getEntityMetadata(clazz);
+        
+        List<EntityFieldMetaData> fields = entityMetadata.getFields();
+        String[] columns = new String[fields.size()];
+        Object[] values = new Object[fields.size()];
+        for (int i = 0; i < fields.size(); i++) {
+            EntityFieldMetaData f = fields.get(i);
+            columns[i] = f.getColumnName();
+            values[i] = f.getValue(entity);
+        }     
+
+
+        ApplicationSession session = (ApplicationSession)client.openApplication(applicationName);
+	    DBObjectBatch objectBatch = new DBObjectBatch();
+	    
+	    DBObject dbObject = new DBObject();
+	    dbObject.setTableName(tableName);
+	    
+	    for (int i = 0; i < fields.size(); i++) {
+	    	if (columns[i] != null && values[i] != null) {
+	    		if (fields.get(i).getDataType().equals(DataType.Name.SET)) {
+	    			dbObject.addFieldValues(columns[i], (Set)values[i]);
+	    		}
+	    		else {
+	    			dbObject.addFieldValue(columns[i], values[i].toString());
+	    		}
+    		}
+    	}    
+	    objectBatch.addObject(dbObject);
+	        
+        storageService = session.getAppDef().getStorageService();
+        if (storageService.startsWith("Spider")) {
+	        //persist
+        	ObjectResult result = ((SpiderSession)session).addObject(tableName, dbObject);
+	        if (result.isFailed()) {
+	        	throw new RuntimeException(result.getErrorMessage());
+	        }
+	        EntityFieldMetaData idField = entityMetadata.getFieldMetadata("id");
+	        idField.setValue(entity, result.getObjectID());	        
+        }  
+  
+        return entity;
+	}
 	/**
      * Get Entity by Id(Primary Key)
      * 
@@ -45,12 +125,13 @@ public class MappingSession {
     public <T> T get(Class<T> entityClass, String id) {
     	
     	Application applicationAnnotation = (Application) entityClass.getAnnotation(Application.class);	
-		String application = applicationAnnotation.name();
-		
+    	//retrieve name from Application annotation
+		String applicationName = applicationAnnotation.name();
+
 		Table tableAnnotation = (Table)entityClass.getAnnotation(Table.class);
 		String tableName = tableAnnotation.name();
 		
-        ApplicationSession session = (ApplicationSession)client.openApplication(application);
+        ApplicationSession session = (ApplicationSession)client.openApplication(applicationName);
         String storageService = session.getAppDef().getStorageService();
         
         if (storageService.startsWith("Spider")) {
@@ -76,68 +157,9 @@ public class MappingSession {
 			}    
          
         }
-        return null;
-         
+        return null;	         
     }
-    
-    /**
-     * Persist Entity
-     * @param entity
-     * @return persisted entity
-     */
-	public <E> E save(E entity) {
-		
-		//retrieve Application name from annotation
-		Application applicationAnnotation = (Application) entity.getClass().getAnnotation(Application.class);	
-		String application = applicationAnnotation.name();
-		Table tableAnnotation = (Table)entity.getClass().getAnnotation(Table.class);
-		String tableName = tableAnnotation.name();
-		
-    	Class<?> clazz = entity.getClass();
-        EntityTypeMetadata entityMetadata = EntityTypeParser.getEntityMetadata(clazz);
-        
-        List<EntityFieldMetaData> fields = entityMetadata.getFields();
-        String[] columns = new String[fields.size()];
-        Object[] values = new Object[fields.size()];
-        for (int i = 0; i < fields.size(); i++) {
-            EntityFieldMetaData f = fields.get(i);
-            columns[i] = f.getColumnName();
-            values[i] = f.getValue(entity);
-        }     
-
-
-        ApplicationSession session = (ApplicationSession)client.openApplication(application);
-	    DBObjectBatch objectBatch = new DBObjectBatch();
-	    
-	    DBObject dbObject = new DBObject();
-	    dbObject.setTableName(tableName);
-	    
-	    for (int i = 0; i < fields.size(); i++) {
-	    	if (columns[i] != null && values[i] != null) {
-	    		if (fields.get(i).getDataType().equals(DataType.Name.SET)) {
-	    			dbObject.addFieldValues(columns[i], (Set)values[i]);
-	    		}
-	    		else {
-	    			dbObject.addFieldValue(columns[i], values[i].toString());
-	    		}
-    		}
-    	}    
-	    objectBatch.addObject(dbObject);
-	        
-        String storageService = session.getAppDef().getStorageService();
-        if (storageService.startsWith("Spider")) {
-	        //persist
-        	ObjectResult result = ((SpiderSession)session).addObject(tableName, dbObject);
-	        if (result.isFailed()) {
-	        	throw new RuntimeException(result.getErrorMessage());
-	        }
-	        EntityFieldMetaData idField = entityMetadata.getFieldMetadata("id");
-	        idField.setValue(entity, result.getObjectID());	        
-        }  
-  
-        return entity;
-	}
-	
+    	
 	private Object getValueObjectFromDBObject(DBObject dbObject, EntityFieldMetaData field) {
 		Object value = null;
         DataType.Name dataType = field.getDataType();
