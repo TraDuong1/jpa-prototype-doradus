@@ -5,7 +5,7 @@ The purpose of this project to demonstrate how to utilize JPA for Doradus, to so
 ### You can take a look at the sample test 
 
 - [MappingSessionTest](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/test/java/com/dell/jpa/mapping/MappingSessionTest.java) to see how to persist JPA entity into Doradus and retrieve it using Object Mapper APIs [MappingSession](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/main/java/com/dell/jpa/mapping/MappingSession.java)
-
+- Support of custom annotations to allow auto-create schema if it doesn’t exist. See attributes defined in [Application annotation](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/main/java/com/dell/jpa/entity/NewEntity.java
 
 ### To get the tests run.
 You will need:
