@@ -38,9 +38,9 @@ public class Movies implements Serializable {
 	@Column(name="ReleaseDate")  
 	private Date releaseDate;
 	
-	@Column(name="Budget") 	
+	@Column(name="Budget") 		
 	private long budget;
-  
+	
 	public Movies() {    
 	}
 	
@@ -112,8 +112,4 @@ public class Movies implements Serializable {
 	public void setLeads(Set<String> leads) {
 		this.leads = leads;
 	}
-
-  
-
-
 }
