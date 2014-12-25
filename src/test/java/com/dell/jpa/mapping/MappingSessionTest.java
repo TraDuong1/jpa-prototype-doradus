@@ -104,11 +104,6 @@ public class MappingSessionTest {
 	
 	@Test
 	public void testPersistAndRetrieveEntityWithSchemaNotExisted() throws ParseException {	
-//		//persist Rating 
-//		Rating rating = new Rating();
-//		rating.setRating("B-");
-//		mappingSession.save(rating);
-		
 		//persist Address
 		Address address = new Address();
 		address.setStreet("111 Main St");
