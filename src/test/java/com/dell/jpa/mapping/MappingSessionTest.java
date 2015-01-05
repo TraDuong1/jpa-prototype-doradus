@@ -104,18 +104,35 @@ public class MappingSessionTest {
 	
 	@Test
 	public void testPersistAndRetrieveEntityWithSchemaNotExisted() throws ParseException {	
-		//persist Address
-		Address address = new Address();
-		address.setStreet("111 Main St");
-		address.setCity("AV");
-		address.setState("CA");
-		address.setZip("92656");
-		mappingSession.save(address);
+		//persist Addresses
+		Address homeAddress = new Address();
+		homeAddress.setStreet("34212 Orcas");
+		homeAddress.setCity("Renton");
+		homeAddress.setState("WA");
+		homeAddress.setZip("98665");
+		mappingSession.save(homeAddress);
 		
+		Address workAddress = new Address();
+		workAddress.setStreet("111 Main St");
+		workAddress.setCity("AV");
+		workAddress.setState("CA");
+		workAddress.setZip("92656");
+		mappingSession.save(workAddress);
+		
+		Address homeAddress2 = new Address();
+		homeAddress2.setStreet("121 38th Ct");
+		homeAddress2.setCity("Vancouver");
+		homeAddress2.setState("WA");
+		homeAddress2.setZip("98665");
+		mappingSession.save(homeAddress2);
+		
+		//persist Person with 2 addresses
 		Person person = new Person();
 		person.setAge(40);
 		person.setName("John");
-		person.setAddressId(address.getId());
+		Set<String> addressIds= new HashSet<String>(Arrays.asList(homeAddress.getId(), workAddress.getId()));
+
+		person.setAddressIds(addressIds);
 		
 		//test persist
 		assertNull(person.getId());		
@@ -126,7 +143,8 @@ public class MappingSessionTest {
 		Person person2 = new Person();
 		person2.setAge(45);
 		person2.setName("Marry");
-		
+		person2.setAddressIds(new HashSet<String>(Arrays.asList(homeAddress2.getId())));
+				
 		mappingSession.save(person2);
 		assertNotNull(person2.getId());		
 		
@@ -137,14 +155,16 @@ public class MappingSessionTest {
 		assertEquals(person.getAge(), result.getAge());	
 		
 		//verify Link object result
-		Address addressResult = mappingSession.get(Address.class, person.getAddressId());
+		Set<String>addresses = person.getAddressIds();
+		
+		Address addressResult = mappingSession.get(Address.class, addresses.iterator().next());
 		assertNotNull(addressResult.getState());
 				
 		boolean hasLinkObject = false;
 		QueryBuilder queryBuilder = new QueryBuilder().query("*").fields("Addresses.*");
 		List<Person> persons = mappingSession.getByQuery(Person.class, queryBuilder); 
 		for (Person eachPerson: persons) {
-			if (eachPerson.getAddressId() != null) {
+			if (eachPerson.getAddressIds().iterator().hasNext()) {
 				hasLinkObject = true;
 			}
 		}

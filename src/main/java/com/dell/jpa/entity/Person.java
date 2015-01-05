@@ -1,5 +1,7 @@
 package com.dell.jpa.entity;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -21,8 +23,8 @@ public class Person {
 	private int age;
 	
 	@Column(name="Addresses")  	
-	@Link(name="Addresses", inverseName="Person", tableName="Address", fieldName="addressId")
-	private String addressId;
+	@Link(name="Addresses", inverseName="Person", tableName="Address", fieldName="addressIds")
+	private Set<String> addressIds;
 	
 
 	public String getId() {
@@ -46,7 +48,14 @@ public class Person {
 		return this;
 	} 
 
-    @Override
+	public Set<String> getAddressIds() {
+		return addressIds;
+	}
+	public void setAddressIds(Set<String> addressIds) {
+		this.addressIds = addressIds;
+	}
+
+	@Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -78,11 +87,6 @@ public class Person {
             return false;
         return true;
     }
-	public String getAddressId() {
-		return addressId;
-	}
-	public void setAddressId(String addressId) {
-		this.addressId = addressId;
-	}
+
 
 }

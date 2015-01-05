@@ -114,10 +114,7 @@ public class MappingSession implements IMappingSession{
 	    		}
     		}
     	}    
-		//Link linkAnnotation = (Link)entity.getClass().getAnnotation(Link.class);
-		//String linkTableName = linkAnnotation.tableName();
-		//dbObject.addFieldValue(linkAnnotation.name(), value);
-		
+	
 	    objectBatch.addObject(dbObject);
 
 		
@@ -145,29 +142,29 @@ public class MappingSession implements IMappingSession{
 		for (int i = 0; i < fields.size(); i++) {    
 			FieldDefinition fieldDef = new FieldDefinition(tableDef);	 
 			if (FieldDefinition.isValidFieldName(fields.get(i).getColumnName())) {
-				switch (fields.get(i).getDataType()) {
-		    		case BOOLEAN:
-		    			fieldDef.setName(fields.get(i).getColumnName());
-		    			fieldDef.setType(FieldType.BOOLEAN);
-		    			break;
-		    		case INT:
-		    			fieldDef.setName(fields.get(i).getColumnName());
-		    			fieldDef.setType(FieldType.INTEGER);
-		    			break;
-		    		case TEXT:
-		    			if (!setLinkField(fields.get(i).getName(), fieldDef, entityClass)) {
+    			if (!setLinkField(fields.get(i).getName(), fieldDef, entityClass)) {   				
+					switch (fields.get(i).getDataType()) {
+			    		case BOOLEAN:
 			    			fieldDef.setName(fields.get(i).getColumnName());
-		    				fieldDef.setType(FieldType.TEXT);
-		    			}
-		    			break;
-		    		case TIMESTAMP:
-		    			fieldDef.setName(fields.get(i).getColumnName());
-		    			fieldDef.setType(FieldType.TIMESTAMP);
-		    			break;
-		    		default:
-		    			break;
-		    		}
-				
+			    			fieldDef.setType(FieldType.BOOLEAN);
+			    			break;
+			    		case INT:
+			    			fieldDef.setName(fields.get(i).getColumnName());
+			    			fieldDef.setType(FieldType.INTEGER);
+			    			break;
+			    		case TEXT:
+			    			fieldDef.setName(fields.get(i).getColumnName());
+			    			fieldDef.setType(FieldType.TEXT);
+			    			
+			    			break;
+			    		case TIMESTAMP:
+			    			fieldDef.setName(fields.get(i).getColumnName());
+			    			fieldDef.setType(FieldType.TIMESTAMP);
+			    			break;
+			    		default:
+			    			break;
+			    	}
+    			}
 				tableDef.addFieldDefinition(fieldDef);		
 		    }
 		}
