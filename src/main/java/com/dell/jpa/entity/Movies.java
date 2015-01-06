@@ -12,7 +12,6 @@ import javax.persistence.Table;
 import com.dell.jpa.entity.annotation.Application;
 
 @Entity
-
 @Application(name="HelloSpider", key="Arachnid")
 @Table(name="Movies")
 public class Movies implements Serializable {
