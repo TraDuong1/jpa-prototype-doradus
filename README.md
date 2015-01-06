@@ -34,7 +34,9 @@ You will need
 ### How to use Doradus-JPA Light APIs
 
 #### Entity with annotations
--Schema already exists (for example, this has application “HelloSpider”, table “Movies” and fields (_ID, Name))
+-Schema already exists 
+for example; the application “HelloSpider”, table “Movies” and fields (_ID, Name) already exists 
+
 ```java
 import javax.persistence.Column;
 import javax.persistence.Entity;
