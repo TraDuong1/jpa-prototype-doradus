@@ -7,9 +7,9 @@
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
-	
+	<groupId>com.dell.doradus.jpa</groupId>	
 	<artifactId>jpa-prototype-doradus</artifactId>
-	<version>2.1.0-beta1</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>	
 	<name>JPA Prototype for Doradus</name>
 	<description>JPA Prototype for Doradus. </description>
