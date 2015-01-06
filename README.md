@@ -35,6 +35,7 @@ You will need
 
 #### Entity with annotations
 -Schema already exists 
+
 for example; the application “HelloSpider”, table “Movies” and fields (_ID, Name) already exists 
 
 ```java
