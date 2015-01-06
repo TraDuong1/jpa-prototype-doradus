@@ -7,12 +7,13 @@ The purpose of this project is to demonstrate how to utilize JPA for Doradus.
 The features provided by this project include:
 
 - CRUD operations
-  	* Create entity (with primitive and collection fields).
- 	* Create entity (with object associations).
-	* Delete entity.     
-  	* Update entity.      
-	* Retrieve entity by unique ID
-	* Retrieve entity by query
+  	* Storing JPA entity objects (with primitive and collection fields)
+ 	* Storing JPA entity (with object associations)
+	* Retrieving JPA entity by unique ID
+	* Retrieving JPA entities by query
+	* Updating JPA entity.      
+	* Deleting JPA entity.     
+  
 
 - Schema Auto Creation
   	* Automatically create schema (application, table and fields) from Entity. 
@@ -33,7 +34,7 @@ You will need
 ### How to use Doradus-JPA Light APIs
 
 #### Entity with annotations
--Schema already exists (application: HelloSpider, table: Movies and fields (_ID, Name)
+-Schema already exists (for example, this has application “HelloSpider”, table “Movies” and fields (_ID, Name))
 ```java
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,17 +47,125 @@ import com.dell.jpa.entity.annotation.Application;
 @Application(name="HelloSpider", key="Arachnid")
 @Table(name="Movies")
 public class Movies implements Serializable {
-
-	private static final long serialVersionUID = 4984054122848129006L;
 	
 	@Id
 	@Column(name="_ID")  
 	private String id;
 	
 	@Column(name="Name")  
-	private String name;	
+	private String name;
+
+	…	
+}
+```
+-Schema does not exist. You can enable schema auto-creation by overriding the attribute ddlAutoCreate to true
+```java
+@Entity
+@Application(name="TestApplication", ddlAutoCreate=true, storageService="SpiderService", key="TestKey")
+@Table(name="Person")
+public class Person {
+	
+	@Id
+	@Column(name="_ID")  
+	private String id;
+	
+	private String name;
+	private int age;
+	…	
+}
+```
+
+#### Obtain a mapping session as a lightweight wrapper for the Doradus Client
+-Via Spring context
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>doradus.properties</value>
+		</property>
+	</bean>
+
+	<bean id="client" class="com.dell.doradus.client.Client">
+      	<constructor-arg type="java.lang.String" value="${doradus.host}"/>
+		<constructor-arg type="int" value="${doradus.port}"/>
+	</bean>
+	
+	<bean id="mappingSession" class="com.dell.jpa.mapping.MappingSession"/>
+	
+</beans>
+```
 
 #### Save
+- Save JPA entity object (with primitive and collection fields)
+```java
+		Movies entity = new Movies();
+		entity.setName("Spririted Away");
+		entity.setDirector("Hayao Miyazaki");
+		entity.setBudget(100);
+		entity.setCancelled(false);
+		Set<String> leads = new HashSet<String>(Arrays.asList("Haku,", "Rin"));
+		entity.setLeads(leads);
+		entity.setReleaseDate(new Date());
 
-- [MappingSessionTest](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/test/java/com/dell/jpa/mapping/MappingSessionTest.java) to see how to persist a JPA entity into Doradus and retrieve it using Object Mapper APIs [MappingSession](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/main/java/com/dell/jpa/mapping/MappingSession.java)
-- With support of custom annotations that allows auto-create Doradus schema if it doesn’t exist, Application and Table can be created 1st time saving the entity. See attributes defined in [Application annotation](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/main/java/com/dell/jpa/entity/NewEntity.java)
+		Movies savedEntity = mappingSession.save(entity);
+```
+
+- Save JPA entity object with associations
+```java
+@Entity
+@Application(name="TestApplication", ddlAutoCreate=true, storageService="SpiderService", key="TestKey")
+@Table(name="Person")
+public class Person {	
+	…
+	@Column(name="Addresses")  	
+	@Link(name="Addresses", inverseName="Person", tableName="Address", fieldName="addressIds")
+	private Set<String> addressIds;
+}
+
+@Entity
+@Application(name="TestApplication", ddlAutoCreate=true, storageService="SpiderService", key="TestKey")
+@Table(name="Address")
+public class Address {
+	@Id
+	@Column(name="_ID")  
+	private String id;
+	
+	@Column(name="Street")  	
+	private String street;
+	
+	@Column(name="City")  
+        …
+}		
+
+		Address homeAddress = new Address();
+		homeAddress.setStreet("34212 Orcas");
+		homeAddress.setCity("Renton");
+
+		Address workAddress = new Address();
+		workAddress.setStreet("111 Main St");
+		workAddress.setCity("AV");
+	
+		Person person = new Person();
+		person.setAge(40);
+		person.setName("John");
+		Set<String> addressIds= new HashSet<String>(Arrays.asList(homeAddress.getId(), workAddress.getId()));
+
+		Person savedPerson = mappingSession.save(person);
+```
+#### Get
+-Get JPA entity by unique ID
+```java
+		Person result = mappingSession.get(Person.class, person.getId());
+```
+-Get JPA entity by query
+```java
+		QueryBuilder queryBuilder = new QueryBuilder().query("*").fields("Addresses.*");
+		List<Person> persons = mappingSession.getByQuery(Person.class, queryBuilder); 
+```
+#### Delete
+```java
+		mappingSession.delete(person);
+```
+
+For complete examples, see [MappingSessionTest.java](https://github.com/TraDuong1/jpa-prototype-doradus/blob/master/src/test/java/com/dell/jpa/mapping/MappingSessionTest.java)

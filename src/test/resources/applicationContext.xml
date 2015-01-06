@@ -15,7 +15,5 @@ http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 	</bean>
 	
 	<bean id="mappingSession" class="com.dell.jpa.mapping.MappingSession"/>
-<!-- 		<property name="client" ref="client" /> -->
-<!-- 	</bean> -->
 	
 </beans>

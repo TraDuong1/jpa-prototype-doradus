@@ -1,11 +1,13 @@
 package com.dell.jpa.entity;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.dell.jpa.entity.annotation.Application;
 
+@Entity
 @Application(name="TestApplication", ddlAutoCreate=true, storageService="SpiderService", key="TestKey")
 @Table(name="Address")
 public class Address {
