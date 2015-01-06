@@ -172,6 +172,31 @@ public class MappingSessionTest {
 	}	
 
 	@Test
+	public void testUpdate() {
+		Movies entity = new Movies();
+		entity.setName("Movies1");
+		entity.setDirector("Director1");
+		entity.setBudget(100);
+		
+		Movies savedObject = mappingSession.save(entity);	
+		Movies result = mappingSession.get(Movies.class, savedObject.getId());
+		assertNotNull(result.getId());
+		assertNotNull(result.getName());
+		assertTrue(result.getName().equals(entity.getName()));
+		
+		String oldName = result.getName();
+		String newName = "Movies2";
+		savedObject.setName(newName);
+		
+		//test Update
+		mappingSession.save(savedObject);
+		result = mappingSession.get(Movies.class, savedObject.getId());
+		assertFalse(result.getName().equals(oldName));
+		assertTrue(result.getName().equals(newName));
+		
+	}
+	
+	@Test
 	public void testDelete() {
 		Movies entity = new Movies();
 		entity.setName("Foo");
@@ -188,5 +213,4 @@ public class MappingSessionTest {
 		result = mappingSession.get(Movies.class, savedObject.getId());
 		assertNull(result.getName());
 	}
-	
 }

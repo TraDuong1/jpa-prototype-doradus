@@ -54,7 +54,6 @@ public class Movies implements Serializable {
 	
 	@Column(name="Name")  
 	private String name;
-
 	…	
 }
 ```
