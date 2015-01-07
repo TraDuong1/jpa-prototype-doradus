@@ -75,6 +75,7 @@ public class MappingSession implements IMappingSession{
             values[i] = f.getValue(entity);
         }     
 
+        //only create schema for application that never has one.
         if (client.getAppDef(applicationName) == null) {			
         	if (ddlAutoCreate) {
         		//create new application

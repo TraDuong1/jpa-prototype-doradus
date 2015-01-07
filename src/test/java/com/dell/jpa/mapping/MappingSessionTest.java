@@ -30,7 +30,6 @@ import com.dell.jpa.mapping.query.QueryBuilder;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/applicationContext.xml")
-
 public class MappingSessionTest {
 	
 	@Autowired
