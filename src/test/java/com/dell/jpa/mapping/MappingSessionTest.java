@@ -204,12 +204,13 @@ public class MappingSessionTest {
 		
 		Movies savedObject = mappingSession.save(entity);	
 		Movies result = mappingSession.get(Movies.class, savedObject.getId());
+		assertNotNull(result);
 		assertNotNull(result.getId());
 		assertNotNull(result.getName());
 		
 		//test Delete
 		mappingSession.delete(savedObject);
 		result = mappingSession.get(Movies.class, savedObject.getId());
-		assertNull(result.getName());
+		assertNull(result);
 	}
 }
